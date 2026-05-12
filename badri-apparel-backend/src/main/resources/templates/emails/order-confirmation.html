@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #FDFBF7; color: #1A1A1A; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .header { background: #800000; color: #FFFFFF; padding: 40px 20px; text-align: center; }
+        .header h1 { margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 28px; letter-spacing: 2px; }
+        .content { padding: 40px 30px; line-height: 1.6; }
+        .order-summary { background: #F9F9F9; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #EEEEEE; }
+        .total { font-weight: bold; font-size: 18px; margin-top: 20px; text-align: right; color: #800000; }
+        .footer { background: #FDFBF7; padding: 30px; text-align: center; font-size: 12px; color: #777777; border-top: 1px solid #EEEEEE; }
+        .btn { display: inline-block; padding: 12px 30px; background: #D4AF37; color: #FFFFFF; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 30px; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 15px;">
+                <path d="M25 15H50C65 15 75 25 75 35C75 42 70 48 62 52C72 55 80 62 80 72C80 85 70 95 55 95H25V15Z" fill="#D4AF37" fill-opacity="0.2"/>
+                <path d="M25 15V95M25 15H50C65 15 75 25 75 35C75 42 70 48 62 52M25 95H55C70 95 80 85 80 72C80 62 72 55 62 52M62 52H25" stroke="#D4AF37" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="38" cy="38" r="6" fill="#D4AF37"/>
+                <circle cx="38" cy="72" r="6" fill="#D4AF37"/>
+            </svg>
+            <h1>BADRIBHAI APPARELS</h1>
+            <p style="margin-top: 10px; font-size: 14px; opacity: 0.8;">Your Order is Confirmed!</p>
+        </div>
+        <div class="content">
+            <p>Namaste, <span th:text="${name}">Customer</span>,</p>
+            <p>Thank you for choosing BadriBhai Apparels. We are delighted to inform you that your order <strong>#<span th:text="${orderNumber}">000</span></strong> has been received and is now being prepared by our master artisans.</p>
+            
+            <div class="order-summary">
+                <h3 style="margin-top: 0; font-size: 16px;">Order Summary</h3>
+                <div th:each="item : ${items}" class="item">
+                    <span th:text="${item.product.title + ' (' + item.selectedSize + ')'}">Product Name</span>
+                    <span th:text="${'x' + item.quantity + ' - Rs.' + (item.price * item.quantity)}">x1 - Rs.999</span>
+                </div>
+                <div class="total">
+                    Total Amount: Rs. <span th:text="${total}">1000</span>
+                </div>
+            </div>
+
+            <p style="margin-top: 30px;">Your artisanal masterpiece is in safe hands. We'll notify you as soon as it's shipped.</p>
+            
+            <center>
+                <a href="https://badribhaiapparel.com/profile/orders" class="btn">Track Your Order</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 BadriBhai Apparels. All Rights Reserved.</p>
+            <p>Jaipur, Rajasthan | support@badribhaiapparel.com</p>
+        </div>
+    </div>
+</body>
+</html>
