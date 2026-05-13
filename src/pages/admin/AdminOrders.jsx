@@ -4,7 +4,7 @@ import {
    MoreHorizontal, ShoppingBag, Truck, CheckCircle2,
    XCircle, Clock, ExternalLink, Download,
    Mail, User, MapPin, ChevronRight, Sparkles,
-   ShieldCheck, Loader2, RefreshCw, PackageCheck, PackageOpen,
+   ShieldCheck, Loader2, RefreshCw, PackageCheck, PackageOpen, Package,
    Eye, Receipt, Printer, Copy, Share2, Box
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

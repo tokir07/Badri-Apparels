@@ -34,8 +34,10 @@ public class Coupon {
 
     private Integer usageLimit;
 
+    @Builder.Default
     private Integer usageLimitPerUser = 1;
 
+    @Builder.Default
     private Integer usedCount = 0;
 
     private LocalDateTime startsAt;
@@ -44,5 +46,7 @@ public class Coupon {
 
     private LocalDateTime deletedAt;
 
+    @Column(name = "is_active")
+    @Builder.Default
     private boolean active = true;
 }

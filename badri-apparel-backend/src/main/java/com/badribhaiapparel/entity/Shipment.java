@@ -40,6 +40,7 @@ public class Shipment {
     private String trackingUrl;
 
     @Column(length = 50)
+    @Builder.Default
     private String status = "PENDING";
 
     @Column(name = "shipped_at")

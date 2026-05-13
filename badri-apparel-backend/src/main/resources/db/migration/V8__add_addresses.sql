@@ -1,5 +1,5 @@
 -- V8__add_addresses.sql
-CREATE TABLE addresses (
+CREATE TABLE IF NOT EXISTS addresses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   label VARCHAR(50),                    -- 'Home' | 'Work' | 'Other'
@@ -16,4 +16,4 @@ CREATE TABLE addresses (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_addresses_user_id ON addresses(user_id);
+CREATE INDEX IF NOT EXISTS idx_addresses_user_id ON addresses(user_id);

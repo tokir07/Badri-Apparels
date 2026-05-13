@@ -31,6 +31,7 @@ public class Order {
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     private Double totalAmount;
@@ -67,6 +68,7 @@ public class Order {
     private String trackingUrl;
     private String shipmentStatusMessage;
     private String couponCode;
+    @Builder.Default
     private Double discountAmount = 0.0;
 
 

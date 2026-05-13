@@ -52,6 +52,7 @@ public class Address {
     @Builder.Default
     private String country = "India";
 
+    @Builder.Default
     private boolean isDefault = false;
 
     @CreatedDate

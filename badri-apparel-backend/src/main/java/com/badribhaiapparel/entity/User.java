@@ -81,6 +81,7 @@ public class User implements UserDetails {
     @Column(name = "is_newsletter_subscribed")
     private Boolean isNewsletterSubscribed = false;
 
+    @Column(name = "is_active")
     private boolean isActive = true;
     
     @Column(name = "two_fa_enabled", nullable = false)

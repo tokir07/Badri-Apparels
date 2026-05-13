@@ -45,6 +45,8 @@ const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminInventory = lazy(() => import('./pages/admin/Inventory'));
+const AdminLogistics = lazy(() => import('./pages/admin/Logistics'));
+const AdminStaff = lazy(() => import('./pages/admin/Staff'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 import { useAuthStore } from './store/useAuthStore';
@@ -160,6 +162,8 @@ function App() {
                       <Route path="coupons" element={<AdminCoupons />} />
                       <Route path="analytics" element={<AdminAnalytics />} />
                       <Route path="settings" element={<AdminSettings />} />
+                      <Route path="logistics" element={<AdminLogistics />} />
+                      <Route path="staff" element={<AdminStaff />} />
                     </Route>
 
                     {/* 404 Route */}
