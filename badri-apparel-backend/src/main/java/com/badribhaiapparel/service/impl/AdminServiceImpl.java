@@ -27,16 +27,26 @@ public class AdminServiceImpl implements AdminService {
     private final com.badribhaiapparel.repository.ProductVariantRepository variantRepository;
     private final EmailService emailService;
 
+    private final com.badribhaiapparel.mapper.OrderMapper orderMapper;
+    private final com.badribhaiapparel.mapper.UserMapper userMapper;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     public AdminServiceImpl(OrderRepository orderRepository,
                             UserRepository userRepository,
                             ProductRepository productRepository,
                             com.badribhaiapparel.repository.ProductVariantRepository variantRepository,
-                            EmailService emailService) {
+                            EmailService emailService,
+                            com.badribhaiapparel.mapper.OrderMapper orderMapper,
+                            com.badribhaiapparel.mapper.UserMapper userMapper,
+                            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.emailService = emailService;
+        this.orderMapper = orderMapper;
+        this.userMapper = userMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -99,48 +109,53 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public com.badribhaiapparel.dto.DashboardSummaryDTO getDashboardSummary() {
+    public com.badribhaiapparel.dto.DashboardSummaryDTO getDashboardSummary(String range) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime todayStart = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime thirtyDaysAgo = now.minusDays(30).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime startDate = getStartDate(range);
 
+        // Core Stats
         // Core Stats
         Double todayRevVal = orderRepository.sumTotalAmountByCreatedAtBetween(todayStart, now);
         java.math.BigDecimal todayRevenue = java.math.BigDecimal.valueOf(todayRevVal != null ? todayRevVal : 0.0);
-        int todayOrders = (int) orderRepository.countByOrderStatus(OrderStatus.PENDING); // Simplified for today's new orders
-        int newCustomers = orderRepository.countNewCustomersSince(todayStart);
+        int todayOrders = (int) orderRepository.countByOrderStatus(OrderStatus.PENDING); 
+        int newCustomers = (int) orderRepository.countNewCustomersSince(todayStart);
         int pendingOrders = (int) orderRepository.countByOrderStatus(OrderStatus.PENDING);
 
         // Time Series
-        List<com.badribhaiapparel.dto.DailyRevenueDTO> revenueLast30Days = orderRepository.getDailyRevenueFrom(thirtyDaysAgo);
+        List<com.badribhaiapparel.dto.DailyRevenueDTO> revenueTrend = orderRepository.getDailyRevenueFrom(startDate);
 
         // Top Products
-        List<Object[]> topProdRaw = orderRepository.getTopProducts(thirtyDaysAgo);
-        List<com.badribhaiapparel.dto.DashboardSummaryDTO.TopProductDTO> topProducts = topProdRaw.stream().map(row -> 
-            com.badribhaiapparel.dto.DashboardSummaryDTO.TopProductDTO.builder()
-                .productId(((Number) row[0]).longValue())
+        List<Object[]> topProdRaw = orderRepository.getTopProducts(startDate);
+        List<com.badribhaiapparel.dto.DashboardSummaryDTO.TopProductDTO> topProducts = topProdRaw.stream().map(row -> {
+            Number id = (Number) row[0];
+            Number sold = (Number) row[2];
+            Number rev = (Number) row[3];
+            return com.badribhaiapparel.dto.DashboardSummaryDTO.TopProductDTO.builder()
+                .productId(id != null ? id.longValue() : 0L)
                 .title((String) row[1])
-                .unitsSold(((Number) row[2]).longValue())
-                .revenue(java.math.BigDecimal.valueOf(((Number) row[3]).doubleValue()))
-                .build()
-        ).collect(Collectors.toList());
+                .unitsSold(sold != null ? sold.longValue() : 0L)
+                .revenue(java.math.BigDecimal.valueOf(rev != null ? rev.doubleValue() : 0.0))
+                .build();
+        }).collect(Collectors.toList());
 
         // Category Revenue
-        List<Object[]> catRevRaw = orderRepository.getRevenueByCategory(thirtyDaysAgo);
-        List<com.badribhaiapparel.dto.DashboardSummaryDTO.CategoryRevenueDTO> revenueByCategory = catRevRaw.stream().map(row -> 
-            com.badribhaiapparel.dto.DashboardSummaryDTO.CategoryRevenueDTO.builder()
+        List<Object[]> catRevRaw = orderRepository.getRevenueByCategory(startDate);
+        List<com.badribhaiapparel.dto.DashboardSummaryDTO.CategoryRevenueDTO> revenueByCategory = catRevRaw.stream().map(row -> {
+            Number rev = (Number) row[1];
+            return com.badribhaiapparel.dto.DashboardSummaryDTO.CategoryRevenueDTO.builder()
                 .categoryName((String) row[0])
-                .revenue(java.math.BigDecimal.valueOf(((Number) row[1]).doubleValue()))
-                .build()
-        ).collect(Collectors.toList());
+                .revenue(java.math.BigDecimal.valueOf(rev != null ? rev.doubleValue() : 0.0))
+                .build();
+        }).collect(Collectors.toList());
 
         // Low Stock
         List<com.badribhaiapparel.dto.DashboardSummaryDTO.LowStockAlertDTO> lowStockAlerts = variantRepository.findLowStockVariants().stream()
             .map(v -> com.badribhaiapparel.dto.DashboardSummaryDTO.LowStockAlertDTO.builder()
-                .productId(v.getProduct().getId())
+                .productId(v.getProduct() != null ? v.getProduct().getId() : null)
                 .variantId(v.getId())
                 .sku(v.getSku())
-                .title(v.getProduct().getTitle())
+                .title(v.getProduct() != null ? v.getProduct().getTitle() : "Unknown")
                 .size(v.getSize())
                 .color(v.getColor())
                 .stock(v.getStock())
@@ -153,9 +168,9 @@ public class AdminServiceImpl implements AdminService {
             .stream().map(o -> com.badribhaiapparel.dto.DashboardSummaryDTO.RecentOrderDTO.builder()
                 .orderId(o.getId())
                 .orderNumber(o.getOrderNumber())
-                .customerName(o.getUser().getFirstName() + " " + o.getUser().getLastName())
-                .total(java.math.BigDecimal.valueOf(o.getTotalAmount()))
-                .status(o.getOrderStatus().name())
+                .customerName((o.getUser() != null) ? (o.getUser().getFirstName() + " " + o.getUser().getLastName()) : "Anonymous")
+                .total(java.math.BigDecimal.valueOf(o.getTotalAmount() != null ? o.getTotalAmount() : 0.0))
+                .status(o.getOrderStatus() != null ? o.getOrderStatus().name() : "UNKNOWN")
                 .createdAt(o.getCreatedAt())
                 .build()
             ).collect(Collectors.toList());
@@ -165,7 +180,7 @@ public class AdminServiceImpl implements AdminService {
             .todayOrders(todayOrders)
             .newCustomersToday(newCustomers)
             .pendingOrders(pendingOrders)
-            .revenueLast30Days(revenueLast30Days)
+            .revenueTrend(revenueTrend)
             .topProducts(topProducts)
             .revenueByCategory(revenueByCategory)
             .lowStockAlerts(lowStockAlerts)
@@ -174,36 +189,37 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<Order> getAllOrders() {
-        return orderRepository.findAllByOrderByCreatedAtDesc();
+    public java.util.List<com.badribhaiapparel.dto.OrderResponseDto> getAllOrders() {
+        return orderMapper.toDtoList(orderRepository.findAllByOrderByCreatedAtDesc());
     }
 
     @Override
     @Transactional
-    public Order updateOrderStatus(Long orderId, OrderStatus status) {
+    public com.badribhaiapparel.dto.OrderResponseDto updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         
         order.setOrderStatus(status);
+        Order savedOrder = orderRepository.save(order);
         
-        // Notify customer
-        emailService.sendShippingUpdate(order);
+        // Trigger asynchronous email notification
+        eventPublisher.publishEvent(new com.badribhaiapparel.event.OrderStatusChangedEvent(savedOrder, status));
         
-        return orderRepository.save(order);
+        return orderMapper.toDto(savedOrder);
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public java.util.List<com.badribhaiapparel.dto.UserResponseDto> getAllUsers() {
+        return userMapper.toDtoList(userRepository.findAll());
     }
 
     @Override
     @Transactional
-    public User updateUserStatus(Long userId, boolean isActive) {
+    public com.badribhaiapparel.dto.UserResponseDto updateUserStatus(Long userId, boolean isActive) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setActive(isActive);
-        return userRepository.save(user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
@@ -215,5 +231,16 @@ public class AdminServiceImpl implements AdminService {
         // If there are orders, we might want to prevent deletion or handle cascade
         // For simplicity now, just delete
         userRepository.delete(user);
+    }
+
+    private LocalDateTime getStartDate(String range) {
+        if (range == null) return LocalDateTime.now().minusDays(30);
+        
+        return switch (range.toLowerCase()) {
+            case "today" -> LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+            case "7d" -> LocalDateTime.now().minusDays(7).withHour(0).withMinute(0).withSecond(0).withNano(0);
+            case "month" -> LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+            default -> LocalDateTime.now().minusDays(30).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        };
     }
 }

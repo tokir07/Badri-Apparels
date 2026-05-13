@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #800000; color: #fff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { border: 1px solid #eee; padding: 30px; border-radius: 0 0 10px 10px; }
+        .order-meta { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { text-align: left; border-bottom: 2px solid #eee; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; }
+        .total { font-weight: bold; font-size: 18px; color: #800000; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BadriBhai Apparels</h1>
+        <p>Your Order is Confirmed!</p>
+    </div>
+    <div class="content">
+        <p>Namaste <span th:text="${customerName}">Customer</span>,</p>
+        <p>Thank you for choosing BadriBhai Apparels. We've received your order and are now preparing it with artisanal care.</p>
+        
+        <div class="order-meta">
+            <strong>Order Number:</strong> <span th:text="${orderNumber}">#BB-12345</span><br/>
+            <strong>Date:</strong> <span th:text="${orderDate}">Jan 01, 2025</span><br/>
+            <strong>Status:</strong> <span th:text="${orderStatus}">CONFIRMED</span>
+        </div>
+
+        <h3>Order Summary</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <td>
+                        <span th:text="${item.productName}">Product Name</span><br/>
+                        <small>Size: <span th:text="${item.size}">M</span>, Color: <span th:text="${item.color}">Blue</span></small>
+                    </td>
+                    <td th:text="${item.quantity}">1</td>
+                    <td th:text="${item.price}">₹ 1,299</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="total">
+            Total Amount: <span th:text="${totalAmount}">₹ 1,299</span>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h3>Shipping Address</h3>
+            <p th:text="${shippingAddress}">123 Heritage Lane, Jaipur</p>
+        </div>
+
+        <p>We will notify you once your package is on its way.</p>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a th:href="${orderTrackingUrl}" style="background: #800000; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Order Details</a>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 BadriBhai Apparels. All Rights Reserved.</p>
+        <p>If you have any questions, contact us at <span th:text="${supportEmail}">support@badribhaiapparels.com</span></p>
+    </div>
+</body>
+</html>

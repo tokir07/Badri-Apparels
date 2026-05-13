@@ -1,10 +1,18 @@
 package com.badribhaiapparel.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "coupons")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Coupon {
 
     @Id
@@ -22,24 +30,19 @@ public class Coupon {
 
     private Double minOrderAmount;
     
+    private Double maxDiscountAmount;
+
+    private Integer usageLimit;
+
+    private Integer usageLimitPerUser = 1;
+
+    private Integer usedCount = 0;
+
+    private LocalDateTime startsAt;
+
     private LocalDateTime expiryDate;
 
+    private LocalDateTime deletedAt;
+
     private boolean active = true;
-
-    public Coupon() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
-    public Double getDiscountValue() { return discountValue; }
-    public void setDiscountValue(Double discountValue) { this.discountValue = discountValue; }
-    public String getDiscountType() { return discountType; }
-    public void setDiscountType(String discountType) { this.discountType = discountType; }
-    public Double getMinOrderAmount() { return minOrderAmount; }
-    public void setMinOrderAmount(Double minOrderAmount) { this.minOrderAmount = minOrderAmount; }
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
 }

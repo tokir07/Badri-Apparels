@@ -10,9 +10,9 @@ export const adminService = {
     }
   },
 
-  getDashboardSummary: async () => {
+  getDashboardSummary: async (params = {}) => {
     try {
-      const response = await axios.get('/admin/dashboard/summary');
+      const response = await axios.get('/admin/dashboard/summary', { params });
       return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Failed to fetch dashboard summary' };

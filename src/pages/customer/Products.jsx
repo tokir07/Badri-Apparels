@@ -1,43 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Grid, List, Search, Loader2 } from 'lucide-react';
-import { productService } from '../../services/productService';
+import { Grid, List, Search } from 'lucide-react';
+import { useProducts } from '../../hooks/useProducts';
 import ProductCard from '../../components/ecommerce/ProductCard';
+import ProductCardSkeleton from '../../components/ui/ProductCardSkeleton';
 import SearchAndFilter from '../../components/customer/SearchAndFilter';
 import { cn } from '../../lib/utils';
 
 const Products = () => {
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [pagination, setPagination] = useState({ totalElements: 0, totalPages: 0, size: 10, number: 0 });
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
-
-  useEffect(() => {
-    fetchProducts();
-  }, [searchParams]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const params = Object.fromEntries(searchParams.entries());
-      const response = await productService.getAllProducts(params);
-      if (response.success) {
-        setProducts(response.data.content);
-        setPagination({
-          totalElements: response.data.totalElements,
-          totalPages: response.data.totalPages,
-          size: response.data.size,
-          number: response.data.number
-        });
-      }
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const filters = Object.fromEntries(searchParams.entries());
+  const { data: response, isLoading: loading } = useProducts(filters);
+  
+  const products = response?.success ? response.data.content : [];
+  const pagination = response?.success ? {
+    totalElements: response.data.totalElements,
+    totalPages: response.data.totalPages,
+    size: response.data.size,
+    number: response.data.number
+  } : { totalElements: 0, totalPages: 0, size: 10, number: 0 };
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-20">
@@ -80,37 +64,43 @@ const Products = () => {
         </div>
 
         {/* Grid */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 gap-4">
-            <Loader2 className="w-12 h-12 text-accent-gold animate-spin" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent-gold">Curating Gallery...</p>
-          </div>
-        ) : products.length > 0 ? (
-          <div className={cn(
-            "grid gap-10",
-            viewMode === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-          )}>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-40 text-center space-y-8 bg-primary/5 rounded-[4rem] border-2 border-dashed border-accent-gold/10">
-            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl">
-              <Search className="text-accent-gold/30" size={32} />
+        <div className="min-h-[400px]">
+          {loading ? (
+            <div className={cn(
+              "grid gap-10",
+              viewMode === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+            )}>
+              {[...Array(6)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-heading font-bold text-text-primary">No Masterpieces Found</h3>
-              <p className="text-text-secondary text-sm max-w-xs mx-auto">Our current curation doesn't match these specific artisanal criteria.</p>
+          ) : products.length > 0 ? (
+            <div className={cn(
+              "grid gap-10",
+              viewMode === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+            )}>
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
-            <button 
-              onClick={() => window.location.href = '/products'}
-              className="px-10 py-4 bg-accent-maroon text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl shadow-accent-maroon/20"
-            >
-              Reset Archive
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="py-40 text-center space-y-8 bg-primary/5 rounded-[4rem] border-2 border-dashed border-accent-gold/10">
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl">
+                <Search className="text-accent-gold/30" size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-heading font-bold text-text-primary">No Masterpieces Found</h3>
+                <p className="text-text-secondary text-sm max-w-xs mx-auto">Our current curation doesn't match these specific artisanal criteria.</p>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/products'}
+                className="px-10 py-4 bg-accent-maroon text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl shadow-accent-maroon/20"
+              >
+                Reset Archive
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Pagination Controls */}
         {pagination.totalPages > 1 && (
@@ -122,7 +112,9 @@ const Products = () => {
                   const params = new URLSearchParams(window.location.search);
                   params.set('page', i);
                   window.history.pushState({}, '', `?${params.toString()}`);
-                  window.scrollTo(0, 0);
+                  // Note: window.history.pushState doesn't trigger a re-render by default with useSearchParams
+                  // In a real app, you'd use navigate() from react-router-dom
+                  window.location.search = params.toString();
                 }}
                 className={cn(
                   "w-12 h-12 rounded-xl text-[10px] font-bold border transition-all",

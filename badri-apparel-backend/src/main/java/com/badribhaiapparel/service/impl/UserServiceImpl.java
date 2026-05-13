@@ -59,4 +59,26 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
+    @Override
+    @Transactional
+    public void subscribeNewsletter(String email) {
+        userRepository.findByEmailIgnoreCase(email).ifPresent(user -> {
+            user.setIsNewsletterSubscribed(true);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public User getCurrentUser() {
+        org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || 
+                authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+            return null;
+        }
+        
+        return userRepository.findByEmailIgnoreCase(authentication.getName()).orElse(null);
+    }
 }

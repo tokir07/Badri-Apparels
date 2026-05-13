@@ -2,17 +2,24 @@ import api from './axios';
 
 export const productService = {
   getAllProducts: async (params = {}) => {
-    // Remove undefined/null params
-    const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([_, v]) => v != null && v !== '')
-    );
-    const response = await api.get('/products', { params: cleanParams });
-    return response.data;
+    try {
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(([_, v]) => v != null && v !== '')
+      );
+      const response = await api.get('/products', { params: cleanParams });
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to fetch products' };
+    }
   },
 
   getProductById: async (id) => {
-    const response = await api.get(`/products/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/products/${id}`);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to fetch product' };
+    }
   },
 
   createProduct: async (productData, imageFiles = []) => {
@@ -38,7 +45,6 @@ export const productService = {
 
       const formData = new FormData();
       
-      // If images are already uploaded objects from Cloudinary, put them in the productData
       if (imageFiles.length > 0 && typeof imageFiles[0] === 'object' && imageFiles[0].publicId) {
         transformedData.images = imageFiles.map(img => ({
           url: img.url || img.secureUrl,
@@ -50,7 +56,6 @@ export const productService = {
       const productBlob = new Blob([JSON.stringify(transformedData)], { type: 'application/json' });
       formData.append('product', productBlob);
       
-      // Legacy support: if they are actual File objects, append as 'images'
       if (imageFiles && imageFiles.length > 0 && imageFiles[0] instanceof File) {
         imageFiles.forEach(file => {
           formData.append('images', file);
@@ -62,46 +67,95 @@ export const productService = {
           'Content-Type': 'multipart/form-data'
         }
       });
-      return response.data;
+      return { success: true, data: response.data.data };
     } catch (error) {
-      console.error("API Error in createProduct:", error.response?.data || error.message);
-      throw error;
+      return { success: false, message: error.response?.data?.message || 'Failed to create product' };
     }
   },
 
   updateProduct: async (id, productData) => {
-    const transformedData = {
-      ...productData,
-      title: productData.name,
-      price: parseFloat(productData.mrp),
-      discountPrice: parseFloat(productData.sellingPrice),
-      featured: productData.features?.isFeatured || false,
-      trending: productData.features?.isTrending || false,
-      sizes: [...new Set(productData.variants.flatMap(v => v.sizes.filter(s => s.enabled).map(s => s.size)))],
-      colors: [...new Set(productData.variants.map(v => v.colorName))],
-      images: productData.images || [],
-      stock: productData.variants.reduce((acc, v) => acc + v.sizes.reduce((sAcc, s) => sAcc + (s.enabled ? parseInt(s.quantity) || 0 : 0), 0), 0)
-    };
-    const response = await api.put(`/products/${id}`, transformedData);
-    return response.data;
+    try {
+      const transformedData = {
+        ...productData,
+        title: productData.name,
+        price: parseFloat(productData.mrp),
+        discountPrice: parseFloat(productData.sellingPrice),
+        featured: productData.features?.isFeatured || false,
+        trending: productData.features?.isTrending || false,
+        sizes: [...new Set(productData.variants.flatMap(v => v.sizes.filter(s => s.enabled).map(s => s.size)))],
+        colors: [...new Set(productData.variants.map(v => v.colorName))],
+        images: productData.images || [],
+        stock: productData.variants.reduce((acc, v) => acc + v.sizes.reduce((sAcc, s) => sAcc + (s.enabled ? parseInt(s.quantity) || 0 : 0), 0), 0)
+      };
+      const response = await api.put(`/products/${id}`, transformedData);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to update product' };
+    }
   },
 
   deleteProduct: async (id) => {
-    const response = await api.delete(`/products/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/products/${id}`);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to delete product' };
+    }
   },
 
   getCategories: async () => {
-    const response = await api.get('/categories');
-    return response.data;
+    try {
+      const response = await api.get('/categories');
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to fetch categories' };
+    }
   },
 
   // Variant Management
-  addVariant: (productId, data) => api.post(`/products/admin/${productId}/variants`, data),
-  updateVariant: (productId, variantId, data) => api.put(`/products/admin/${productId}/variants/${variantId}`, data),
-  deleteVariant: (productId, variantId) => api.delete(`/products/admin/${productId}/variants/${variantId}`),
+  addVariant: async (productId, data) => {
+    try {
+      const response = await api.post(`/products/admin/${productId}/variants`, data);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to add variant' };
+    }
+  },
+
+  updateVariant: async (productId, variantId, data) => {
+    try {
+      const response = await api.put(`/products/admin/${productId}/variants/${variantId}`, data);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to update variant' };
+    }
+  },
+
+  deleteVariant: async (productId, variantId) => {
+    try {
+      const response = await api.delete(`/products/admin/${productId}/variants/${variantId}`);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to delete variant' };
+    }
+  },
   
   // Inventory Management
-  getLowStockVariants: () => api.get('/products/admin/inventory/low-stock'),
-  bulkUpdateStock: (items) => api.post('/products/admin/inventory/bulk-stock-update', items)
+  getLowStockVariants: async () => {
+    try {
+      const response = await api.get('/products/admin/inventory/low-stock');
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to fetch low stock variants' };
+    }
+  },
+
+  bulkUpdateStock: async (items) => {
+    try {
+      const response = await api.post('/products/admin/inventory/bulk-stock-update', items);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to update stock' };
+    }
+  }
 };

@@ -47,5 +47,10 @@ export const authService = {
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     return response.data;
+  },
+
+  subscribeNewsletter: async (email) => {
+    const response = await api.post('/users/newsletter/subscribe', { email });
+    return response.data;
   }
 };

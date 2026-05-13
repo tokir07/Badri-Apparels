@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Grid, List, Loader2 } from 'lucide-react';
+import { Sparkles, Grid, List, Loader2, Leaf, ShieldCheck, Star } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/ecommerce/ProductCard';
 import SearchAndFilter from '../../components/customer/SearchAndFilter';

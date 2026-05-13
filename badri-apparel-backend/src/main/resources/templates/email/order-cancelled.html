@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Cancelled</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #333; color: #fff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { border: 1px solid #eee; padding: 30px; border-radius: 0 0 10px 10px; }
+        .cancel-reason { background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 8px; color: #991b1b; margin: 20px 0; }
+        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BadriBhai Apparels</h1>
+        <p>Order Update</p>
+    </div>
+    <div class="content">
+        <p>Namaste <span th:text="${customerName}">Customer</span>,</p>
+        <p>Your order <strong th:text="${orderNumber}">#BB-12345</strong> has been cancelled.</p>
+        
+        <div class="cancel-reason" th:if="${reason != null}">
+            <strong>Reason for cancellation:</strong> <span th:text="${reason}">Out of stock / Customer request</span>
+        </div>
+
+        <h3>What happens next?</h3>
+        <ul>
+            <li th:if="${paymentStatus == 'PAID'}"><strong>Refund:</strong> Since you've already paid, a full refund has been initiated to your original payment method. It should reflect in 5-7 business days.</li>
+            <li>You can always browse our collection and place a new order anytime.</li>
+        </ul>
+
+        <p>We apologize for any inconvenience caused. If you didn't request this cancellation, please contact our support team immediately.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 BadriBhai Apparels. All Rights Reserved.</p>
+        <p>Support: <span th:text="${supportEmail}">support@badribhaiapparels.com</span></p>
+    </div>
+</body>
+</html>

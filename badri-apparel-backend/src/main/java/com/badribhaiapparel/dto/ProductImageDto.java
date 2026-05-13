@@ -1,8 +1,12 @@
 package com.badribhaiapparel.dto;
 
+import java.util.UUID;
+
 public record ProductImageDto(
-    java.util.UUID id,
+    UUID id,
     String url,
+    String publicId,
     String altText,
-    boolean isFeatured
+    boolean isMain,
+    int sortOrder
 ) {}

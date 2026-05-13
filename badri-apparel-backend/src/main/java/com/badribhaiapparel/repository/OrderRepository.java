@@ -51,7 +51,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> getRevenueByCategory(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :since AND u.role = 'CUSTOMER'")
-    int countNewCustomersSince(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
+    long countNewCustomersSince(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
 
     List<Order> findAllByOrderByCreatedAtDesc();
+
+    long countByCouponCodeAndUser(String couponCode, User user);
+
+    boolean existsByUserIdAndOrderStatusAndItemsProductId(Long userId, OrderStatus status, Long productId);
 }

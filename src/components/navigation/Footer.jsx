@@ -1,10 +1,36 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, MapPin, Sparkles, Camera, Globe } from 'lucide-react';
+import { ArrowRight, MapPin, Sparkles, Camera, Globe, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
+import { authService } from '../../services/authService';
 
 const Footer = () => {
+  const [submitting, setSubmitting] = React.useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    if (!email) return;
+
+    setSubmitting(true);
+    try {
+      const res = await authService.subscribeNewsletter(email);
+      if (res.success) {
+        toast.success("Welcome to the Collective", { 
+          description: "You have been enrolled in our heritage dispatches." 
+        });
+        e.target.reset();
+      } else {
+        toast.error(res.message || "Subscription failed");
+      }
+    } catch (error) {
+      toast.error("Failed to connect to the heritage archive");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <footer className="bg-card border-t border-border pt-24 pb-12 overflow-hidden relative mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -30,25 +56,23 @@ const Footer = () => {
             <div className="space-y-6 pt-4">
                <p className="text-xs font-bold uppercase tracking-widest text-foreground">Subscribe to our Newsletter</p>
                <form 
-                 onSubmit={(e) => {
-                   e.preventDefault();
-                   const email = e.target.email.value;
-                   if (email) {
-                     toast.success("Welcome to the Collective", { description: "You have been enrolled in our heritage dispatches." });
-                     e.target.reset();
-                   }
-                 }}
+                 onSubmit={handleSubscribe}
                  className="relative max-w-md group"
                >
                   <input 
                     name="email"
                     type="email" 
                     required
+                    disabled={submitting}
                     placeholder="ENTER YOUR EMAIL ADDRESS" 
                     className="w-full bg-transparent border-b border-border py-4 text-xs tracking-widest focus:outline-none focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground/40 font-bold uppercase"
                   />
-                  <button type="submit" className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors">
-                    <ArrowRight size={20} />
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors"
+                  >
+                    {submitting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={20} />}
                   </button>
                </form>
             </div>

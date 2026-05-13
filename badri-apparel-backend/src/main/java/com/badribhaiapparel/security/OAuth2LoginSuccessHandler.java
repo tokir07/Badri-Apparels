@@ -20,6 +20,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public OAuth2LoginSuccessHandler(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
@@ -63,7 +66,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        String targetUrl = UriComponentsBuilder.fromUriString("http://127.0.0.1:5173/oauth2/callback")
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("token", accessToken)
                 .queryParam("refresh_token", refreshToken)
                 .build().toUriString();

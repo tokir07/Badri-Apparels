@@ -2,14 +2,26 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, Sparkles, Heart } from 'lucide-react';
-import { useWishlist } from '../../context/WishlistContext';
+import { useWishlistStore } from '../../store/useWishlistStore';
 import { useCartStore } from '../../store/useCartStore';
 import ProductCard from '../../components/ecommerce/ProductCard';
 import { cn } from '../../lib/utils';
 
 const Wishlist = () => {
-  const { wishlist } = useWishlist();
+  const { wishlist, fetchWishlist, loading } = useWishlistStore();
   const { addItem } = useCartStore();
+
+  React.useEffect(() => {
+    fetchWishlist();
+  }, [fetchWishlist]);
+
+  if (loading && wishlist.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-20">
@@ -69,7 +81,7 @@ const Wishlist = () => {
               <p className="text-muted-foreground max-w-xs text-sm mb-10">Discover something iconic. Save your favorite pieces and build your personal collection.</p>
               
               <Link 
-                to="/products" 
+                to="/collections" 
                 className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest rounded-xl hover:brightness-110 transition-all shadow-lg gap-3"
               >
                 Explore Collections <ArrowRight size={16} />

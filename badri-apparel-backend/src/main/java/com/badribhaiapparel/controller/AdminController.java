@@ -33,17 +33,19 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<ApiResponse<com.badribhaiapparel.dto.DashboardSummaryDTO>> getSummary() {
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<com.badribhaiapparel.dto.DashboardSummaryDTO>> getSummary(
+            @RequestParam(defaultValue = "30d") String range) {
         return ResponseEntity.ok(ApiResponse.<com.badribhaiapparel.dto.DashboardSummaryDTO>builder()
                 .success(true)
                 .message("Dashboard summary fetched")
-                .data(adminService.getDashboardSummary())
+                .data(adminService.getDashboardSummary(range))
                 .build());
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<ApiResponse<List<Order>>> getAllOrders() {
-        return ResponseEntity.ok(ApiResponse.<List<Order>>builder()
+    public ResponseEntity<ApiResponse<List<com.badribhaiapparel.dto.OrderResponseDto>>> getAllOrders() {
+        return ResponseEntity.ok(ApiResponse.<List<com.badribhaiapparel.dto.OrderResponseDto>>builder()
                 .success(true)
                 .message("All orders fetched")
                 .data(adminService.getAllOrders())
@@ -51,10 +53,10 @@ public class AdminController {
     }
 
     @PutMapping("/orders/{id}/status")
-    public ResponseEntity<ApiResponse<Order>> updateOrderStatus(
+    public ResponseEntity<ApiResponse<com.badribhaiapparel.dto.OrderResponseDto>> updateOrderStatus(
             @PathVariable Long id,
             @RequestParam OrderStatus status) {
-        return ResponseEntity.ok(ApiResponse.<Order>builder()
+        return ResponseEntity.ok(ApiResponse.<com.badribhaiapparel.dto.OrderResponseDto>builder()
                 .success(true)
                 .message("Order status updated")
                 .data(adminService.updateOrderStatus(id, status))
@@ -62,8 +64,8 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
-        return ResponseEntity.ok(ApiResponse.<List<User>>builder()
+    public ResponseEntity<ApiResponse<List<com.badribhaiapparel.dto.UserResponseDto>>> getAllUsers() {
+        return ResponseEntity.ok(ApiResponse.<List<com.badribhaiapparel.dto.UserResponseDto>>builder()
                 .success(true)
                 .message("All users fetched")
                 .data(adminService.getAllUsers())
@@ -71,10 +73,10 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/status")
-    public ResponseEntity<ApiResponse<User>> updateUserStatus(
+    public ResponseEntity<ApiResponse<com.badribhaiapparel.dto.UserResponseDto>> updateUserStatus(
             @PathVariable Long id,
             @RequestParam boolean isActive) {
-        return ResponseEntity.ok(ApiResponse.<User>builder()
+        return ResponseEntity.ok(ApiResponse.<com.badribhaiapparel.dto.UserResponseDto>builder()
                 .success(true)
                 .message("User status updated")
                 .data(adminService.updateUserStatus(id, isActive))

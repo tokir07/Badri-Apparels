@@ -4,11 +4,13 @@ import { Star, Truck, ShieldCheck, RefreshCw, Plus, Minus, ShoppingBag, Heart } 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useCartStore } from '../../store/useCartStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useWishlist } from '../../context/WishlistContext';
+import { useWishlistStore } from '../../store/useWishlistStore';
 import { productService } from '../../services/productService';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Pagination, Navigation, Autoplay, EffectFade } from 'swiper/modules';
+import ReviewSection from '../../components/ecommerce/ReviewSection';
+import SizeGuide from '../../components/ecommerce/SizeGuide';
 import { cn } from '../../lib/utils';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -20,10 +22,11 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -190,7 +193,12 @@ const ProductDetail = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-foreground">Select Size</h3>
-                  <button className="text-[10px] font-bold text-muted-foreground underline underline-offset-4 hover:text-primary transition-all uppercase tracking-tighter">Size Guide</button>
+                  <button 
+                    onClick={() => setIsSizeGuideOpen(true)}
+                    className="text-[10px] font-bold text-muted-foreground underline underline-offset-4 hover:text-primary transition-all uppercase tracking-tighter"
+                  >
+                    Size Guide
+                  </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {availableSizes.map((size) => (
@@ -317,7 +325,16 @@ const ProductDetail = () => {
           </div>
           
         </div>
+
+        {/* REVIEWS SECTION */}
+        <ReviewSection productId={id} />
       </div>
+
+      <SizeGuide 
+        isOpen={isSizeGuideOpen} 
+        onClose={() => setIsSizeGuideOpen(false)} 
+        category={product?.category?.name}
+      />
     </div>
   );
 };

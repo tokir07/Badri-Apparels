@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Shipped</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #800000; color: #fff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { border: 1px solid #eee; padding: 30px; border-radius: 0 0 10px 10px; }
+        .shipping-info { background: #f0fdf4; border: 1px solid #bcf0da; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; }
+        .btn { display: inline-block; background: #800000; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BadriBhai Apparels</h1>
+        <p>Your Heritage is on the Way!</p>
+    </div>
+    <div class="content">
+        <p>Great news <span th:text="${customerName}">Customer</span>!</p>
+        <p>Your order <strong th:text="${orderNumber}">#BB-12345</strong> has been shipped and is currently traveling to you.</p>
+        
+        <div class="shipping-info">
+            <h3 style="margin-top: 0; color: #166534;">Tracking Information</h3>
+            <p><strong>Carrier:</strong> <span th:text="${carrier}">Delhivery</span></p>
+            <p><strong>Tracking Number:</strong> <span th:text="${trackingNumber}">AWB123456789</span></p>
+            <p><strong>Estimated Delivery:</strong> <span th:text="${estimatedDelivery}">Jan 05, 2025</span></p>
+        </div>
+
+        <p>You can track your package in real-time by clicking the button below:</p>
+        
+        <div style="text-align: center;">
+            <a th:href="${trackingUrl}" class="btn">Track My Package</a>
+        </div>
+
+        <p style="margin-top: 30px;">If you have any questions about your shipment, please don't hesitate to reach out to us.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 BadriBhai Apparels. All Rights Reserved.</p>
+        <p>Contact: <span th:text="${supportEmail}">support@badribhaiapparels.com</span></p>
+    </div>
+</body>
+</html>

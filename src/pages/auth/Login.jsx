@@ -211,15 +211,13 @@ const Login = () => {
           </div>
 
           <div className="mt-8">
-            <a 
-              href="http://127.0.0.1:8080/oauth2/authorization/google"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button 
+              onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`}
               className="w-full py-5 bg-white border border-border rounded-2xl flex items-center justify-center gap-4 hover:border-accent hover:bg-accent/5 transition-all duration-500 group shadow-sm no-underline"
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground">Continue with Google</span>
-            </a>
+            </button>
           </div>
 
           <p className="mt-12 text-center text-xs text-muted-foreground">

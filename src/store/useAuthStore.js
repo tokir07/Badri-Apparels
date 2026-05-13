@@ -127,6 +127,9 @@ export const useAuthStore = create(
           };
         }
       },
+      updateUser: (updates) => set((state) => ({
+        user: state.user ? { ...state.user, ...updates } : null
+      })),
     }),
     {
       name: 'badri-auth-storage',

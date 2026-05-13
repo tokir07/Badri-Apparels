@@ -4,12 +4,46 @@ import {
   Search, Filter, ChevronDown, Package, MapPin, 
   ArrowRight, Download, RefreshCw, Star, ArrowUpRight,
   Sparkles, ShieldCheck, ShoppingBag, Truck, ExternalLink,
-  ChevronRight, Calendar
+  ChevronRight, Calendar, CheckCircle2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { orderService } from '../../../services/orderService';
+import { shipmentService } from '../../../services/shipmentService';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+
+const OrderStatusTimeline = ({ status }) => {
+  const steps = shipmentService.getTimeline(status);
+  
+  return (
+    <div className="flex items-center w-full max-w-lg mt-8">
+      {steps.map((step, idx) => (
+        <React.Fragment key={step.id}>
+          <div className="flex flex-col items-center relative group">
+            <div className={cn(
+              "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-500",
+              step.isCompleted ? "bg-accent-maroon border-accent-maroon text-white" : "bg-white border-accent-gold/20 text-accent-gold/40"
+            )}>
+              {step.isCompleted && <CheckCircle2 size={10} />}
+            </div>
+            <span className={cn(
+              "absolute -bottom-6 text-[7px] font-bold uppercase tracking-tighter whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity",
+              step.isActive ? "opacity-100 text-accent-maroon" : "text-muted-foreground"
+            )}>
+              {step.label}
+            </span>
+          </div>
+          {idx < steps.length - 1 && (
+            <div className={cn(
+              "flex-1 h-[2px] transition-all duration-1000",
+              step.isCompleted && steps[idx+1].isCompleted ? "bg-accent-maroon" : "bg-accent-gold/10"
+            )} />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 const AccountOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -37,9 +71,30 @@ const AccountOrders = () => {
     fetchOrders();
   }, []);
 
+  const handleDownloadInvoice = async (orderId, orderNumber) => {
+    try {
+      toast.loading("Generating heritage record...", { id: 'invoice-download' });
+      const response = await orderService.downloadInvoice(orderId);
+      
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${orderNumber || orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Invoice archived successfully", { id: 'invoice-download' });
+    } catch (error) {
+      console.error("Failed to download invoice:", error);
+      toast.error("Failed to extract invoice archive", { id: 'invoice-download' });
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesTab = activeTab === 'All' || order.orderStatus === activeTab;
-    const matchesSearch = (order.orderId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = (order.orderNumber || order.orderId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          order.items?.some(item => item.product?.title?.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesTab && matchesSearch;
   });
@@ -144,9 +199,15 @@ const AccountOrders = () => {
                  </div>
                  
                   <div className="flex items-center gap-4">
-                    <button className="w-14 h-14 bg-white border border-accent-gold/10 rounded-2xl text-accent-maroon hover:bg-accent-maroon hover:text-white transition-all shadow-sm flex items-center justify-center group/btn" title="Download Archive Record">
-                       <Download size={20} />
-                    </button>
+                    {(order.orderStatus === 'DELIVERED' || order.paymentStatus === 'PAID') && (
+                      <button 
+                        onClick={() => handleDownloadInvoice(order.id, order.orderNumber)}
+                        className="w-14 h-14 bg-white border border-accent-gold/10 rounded-2xl text-accent-maroon hover:bg-accent-maroon hover:text-white transition-all shadow-sm flex items-center justify-center group/btn" 
+                        title="Download Archive Record"
+                      >
+                         <Download size={20} />
+                      </button>
+                    )}
                     <Link to={`/track/${order.orderId || order.id}`} className="px-10 py-5 bg-text-primary text-white rounded-2xl text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-accent-maroon transition-all shadow-xl">
                        Track Journey
                     </Link>
@@ -211,9 +272,11 @@ const AccountOrders = () => {
                           </div>
                           
                           <div className="space-y-6">
-                            <p className="text-sm text-text-secondary leading-relaxed font-medium italic">
-                               "Your artisanal acquisition is currently in the <span className="font-bold text-accent-maroon uppercase tracking-widest">{order.orderStatus}</span> stage of its journey."
-                            </p>
+                             <p className="text-sm text-text-secondary leading-relaxed font-medium italic">
+                                "Your artisanal acquisition is currently in the <span className="font-bold text-accent-maroon uppercase tracking-widest">{order.orderStatus}</span> stage of its journey."
+                             </p>
+                             
+                             <OrderStatusTimeline status={order.orderStatus} />
                             
                             <div className="pt-6 border-t border-accent-gold/10 space-y-6">
                                <button className="w-full py-5 bg-accent-maroon text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:brightness-110 transition-all flex items-center justify-center gap-3 shadow-xl shadow-accent-maroon/20">

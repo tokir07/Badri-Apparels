@@ -23,7 +23,7 @@ const AdminDashboard = () => {
 
   const fetchSummary = async () => {
     try {
-      const response = await adminService.getDashboardSummary();
+      const response = await adminService.getDashboardSummary({ range: dateRange });
       if (response.success) {
         setSummary(response.data);
       }
@@ -171,14 +171,14 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center mb-16">
             <div className="space-y-2">
               <h3 className="text-2xl font-heading font-bold text-text-primary">Revenue Anthology</h3>
-              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-accent-gold">30-Day performance velocity</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-accent-gold">{dateRange} performance velocity</p>
             </div>
             <Activity className="text-accent-gold/20" size={32} />
           </div>
 
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={summary?.revenueLast30Days || []}>
+          <div className="h-[350px] w-full min-h-[350px]">
+            <ResponsiveContainer width="100%" height="100%" minHeight={350}>
+              <AreaChart data={summary?.revenueTrend || []}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#800000" stopOpacity={0.1}/>

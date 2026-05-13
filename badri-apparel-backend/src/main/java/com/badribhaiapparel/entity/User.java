@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -31,7 +32,12 @@ public class User implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
+
+    @Column(name = "two_factor_secret")
+    @JsonIgnore
+    private String twoFactorSecret;
 
     private String phoneNumber;
 
@@ -46,6 +52,9 @@ public class User implements UserDetails {
 
     @Column(name = "profile_image")
     private String profileImage;
+
+    @Column(name = "cloudinary_public_id")
+    private String cloudinaryPublicId;
 
     // New profile fields
     @Column(name = "gender")
@@ -75,6 +84,7 @@ public class User implements UserDetails {
     private boolean isActive = true;
     
     @Column(name = "two_fa_enabled", nullable = false)
+    @JsonIgnore
     private boolean two_fa_enabled = false;
     
     @CreatedDate
@@ -108,12 +118,17 @@ public class User implements UserDetails {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    
+    public String getTwoFactorSecret() { return twoFactorSecret; }
+    public void setTwoFactorSecret(String twoFactorSecret) { this.twoFactorSecret = twoFactorSecret; }
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
     public String getProfileImage() { return profileImage; }
     public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+    public String getCloudinaryPublicId() { return cloudinaryPublicId; }
+    public void setCloudinaryPublicId(String cloudinaryPublicId) { this.cloudinaryPublicId = cloudinaryPublicId; }
     
     public String getProvider() { return provider; }
     public void setProvider(String provider) { this.provider = provider; }
@@ -190,7 +205,9 @@ public class User implements UserDetails {
         private String provider;
         private String providerId;
         private String profileImage;
+        private String cloudinaryPublicId;
         private boolean two_fa_enabled = false;
+        private String twoFactorSecret;
 
         public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
         public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
@@ -210,7 +227,9 @@ public class User implements UserDetails {
         public UserBuilder provider(String provider) { this.provider = provider; return this; }
         public UserBuilder providerId(String providerId) { this.providerId = providerId; return this; }
         public UserBuilder profileImage(String profileImage) { this.profileImage = profileImage; return this; }
+        public UserBuilder cloudinaryPublicId(String cloudinaryPublicId) { this.cloudinaryPublicId = cloudinaryPublicId; return this; }
         public UserBuilder two_fa_enabled(boolean two_fa_enabled) { this.two_fa_enabled = two_fa_enabled; return this; }
+        public UserBuilder twoFactorSecret(String twoFactorSecret) { this.twoFactorSecret = twoFactorSecret; return this; }
         
         public User build() {
             User user = new User();
@@ -232,7 +251,9 @@ public class User implements UserDetails {
             user.setProvider(provider);
             user.setProviderId(providerId);
             user.setProfileImage(profileImage);
+            user.setCloudinaryPublicId(cloudinaryPublicId);
             user.setTwo_fa_enabled(two_fa_enabled);
+            user.setTwoFactorSecret(twoFactorSecret);
             return user;
         }
     }

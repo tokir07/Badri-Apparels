@@ -103,7 +103,7 @@ const Orders = () => {
                   <div className="flex items-center gap-4">
                     <p className="text-[10px] font-bold text-text-secondary">ORDER #{order.orderId || order.id}</p>
                     <Link 
-                      to={`/profile/track-order/${order.orderId || order.id}`} 
+                      to={`/track/${order.orderId || order.id}`} 
                       className="p-3 bg-white text-text-primary rounded-xl hover:bg-accent-maroon hover:text-white transition-all shadow-sm border border-border-light"
                       title="Track Order"
                     >

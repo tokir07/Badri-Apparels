@@ -12,6 +12,9 @@ import { toast } from 'sonner';
 import { paymentService } from '../../services/paymentService';
 import { loadRazorpayScript } from '../../utils/razorpayLoader';
 import { cn } from '../../lib/utils';
+import couponService from '../../services/couponService';
+import { addressService } from '../../services/addressService';
+import { Tag, MapPinned, Loader2 } from 'lucide-react';
 
 const steps = [
   { id: 1, title: 'Shipping', subtitle: 'Delivery Details' },
@@ -28,17 +31,76 @@ const Checkout = () => {
   const [placedOrderId, setPlacedOrderId] = useState(null);
 
   const subtotalValue = getSubtotal() || 0;
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
       shippingMethod: 'Express',
       paymentMethod: 'CreditCard'
     }
   });
 
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setLoadingAddresses(true);
+        const res = await addressService.getAddresses();
+        if (res.success && res.data.length > 0) {
+          setSavedAddresses(res.data);
+          const defaultAddr = res.data.find(a => a.isDefault) || res.data[0];
+          handleSelectAddress(defaultAddr);
+        }
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+    fetchAddresses();
+  }, []);
+
+  const handleSelectAddress = (addr) => {
+    setSelectedAddressId(addr.id);
+    setValue('firstName', addr.recipientName.split(' ')[0] || '');
+    setValue('lastName', addr.recipientName.split(' ').slice(1).join(' ') || '');
+    setValue('address', `${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}`);
+    setValue('city', addr.city);
+    setValue('zip', addr.pincode);
+  };
+
   const watchFields = watch();
   const shippingCost = watchFields.shippingMethod === 'Express' ? 499 : 0;
-  const totalPayable = subtotalValue + shippingCost;
+  const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const totalPayable = subtotalValue + shippingCost - discountAmount;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    try {
+      setIsValidatingCoupon(true);
+      const res = await couponService.validateCoupon(couponCode, subtotalValue);
+      if (res.success) {
+        setAppliedCoupon(res.data);
+        toast.success(res.message || "Coupon applied successfully!");
+      } else {
+        toast.error(res.message || "Invalid coupon code");
+      }
+    } catch (error) {
+      toast.error("Failed to validate coupon");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+  };
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -72,7 +134,8 @@ const Checkout = () => {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
-              shippingAddress: `${formData.address}, ${formData.city}, ${formData.zip}`
+              shippingAddress: `${formData.address}, ${formData.city}, ${formData.zip}`,
+              couponCode: appliedCoupon?.code
             };
             
             console.log("Sending Verification Data:", verificationData);
@@ -133,8 +196,8 @@ const Checkout = () => {
         <p className="text-muted-foreground text-sm mb-10 max-w-sm text-center">
           You haven't added any artisanal pieces to your checkout yet.
         </p>
-        <Link to="/products" className="px-10 py-4 bg-primary text-primary-foreground rounded-xl font-bold uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-lg">
-          Start Shopping
+        <Link to="/collections" className="px-10 py-4 bg-primary text-primary-foreground rounded-xl font-bold uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-lg">
+          Explore Collections
         </Link>
       </div>
     );
@@ -201,6 +264,37 @@ const Checkout = () => {
                            <h2 className="text-2xl font-heading font-bold text-foreground">Delivery Information</h2>
                            <p className="text-muted-foreground text-sm">Where should we send your artisanal pieces?</p>
                         </div>
+
+                        {savedAddresses.length > 0 && (
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Use Saved Destination</label>
+                            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                              {savedAddresses.map(addr => (
+                                <div 
+                                  key={addr.id}
+                                  onClick={() => handleSelectAddress(addr)}
+                                  className={cn(
+                                    "min-w-[240px] p-5 rounded-2xl border-2 cursor-pointer transition-all shrink-0",
+                                    selectedAddressId === addr.id 
+                                      ? 'border-primary bg-primary/5 shadow-md' 
+                                      : 'border-border bg-muted/30 hover:border-primary/30'
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between mb-3">
+                                    <span className="text-[8px] font-bold uppercase tracking-widest px-3 py-1 bg-white border border-border rounded-full">{addr.label}</span>
+                                    {selectedAddressId === addr.id && <Check size={14} className="text-primary" />}
+                                  </div>
+                                  <p className="text-xs font-bold text-foreground mb-1">{addr.recipientName}</p>
+                                  <p className="text-[10px] text-muted-foreground line-clamp-2">{addr.line1}, {addr.city}</p>
+                                </div>
+                              ))}
+                              <Link to="/profile/addresses" className="min-w-[120px] flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all gap-2 text-muted-foreground hover:text-primary">
+                                <Plus size={20} />
+                                <span className="text-[8px] font-bold uppercase tracking-widest">Add New</span>
+                              </Link>
+                            </div>
+                          </div>
+                        )}
   
                         <div className="grid grid-cols-2 gap-4">
                            <div className="space-y-2">
@@ -390,6 +484,54 @@ const Checkout = () => {
                        </div>
                      ))}
                   </div>
+
+                   {/* Coupon Section */}
+                   <div className="mb-8 pt-6 border-t border-border">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 block">Promotion Code</label>
+                      <div className="flex gap-2">
+                         <div className="relative flex-1">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                            <input 
+                              type="text" 
+                              value={couponCode}
+                              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                              disabled={!!appliedCoupon || isValidatingCoupon}
+                              placeholder="FESTIVE20"
+                              className="w-full bg-muted/50 border border-border rounded-xl py-3 pl-10 pr-3 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all uppercase font-bold tracking-widest disabled:opacity-50" 
+                            />
+                         </div>
+                         {appliedCoupon ? (
+                           <button 
+                            type="button"
+                            onClick={removeCoupon}
+                            className="px-4 py-3 bg-destructive/10 text-destructive rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-destructive/20 transition-all"
+                           >
+                            Remove
+                           </button>
+                         ) : (
+                           <button 
+                            type="button"
+                            onClick={handleApplyCoupon}
+                            disabled={!couponCode || isValidatingCoupon}
+                            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
+                           >
+                            {isValidatingCoupon ? '...' : 'Apply'}
+                           </button>
+                         )}
+                      </div>
+                      <AnimatePresence>
+                        {appliedCoupon && (
+                          <motion.p 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-3 flex items-center gap-1.5"
+                          >
+                            <Sparkles size={12} /> {appliedCoupon.message || "Discount Applied!"}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                   </div>
   
                    <div className="space-y-4 pt-8 border-t border-border">
                       <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -403,6 +545,12 @@ const Checkout = () => {
                            watchFields.shippingMethod === 'Express' ? "text-primary" : "text-green-600"
                          )}>{watchFields.shippingMethod === 'Express' ? '₹499' : 'Complimentary'}</span>
                       </div>
+                      {appliedCoupon && (
+                        <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-green-600">
+                           <span>Festive Discount</span>
+                           <span>-₹{(discountAmount || 0).toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="pt-2">
                         <div className="flex justify-between items-end">
                            <div className="space-y-1">

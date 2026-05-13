@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 public class ShipmentController {
 
     private final ShipmentService shipmentService;
+    private final com.badribhaiapparel.repository.OrderRepository orderRepository;
+    private final com.badribhaiapparel.repository.UserRepository userRepository;
 
     @PatchMapping("/admin/orders/{id}/shipment")
     @PreAuthorize("hasRole('ADMIN')")
@@ -31,8 +33,24 @@ public class ShipmentController {
     }
 
     @GetMapping("/orders/{id}/tracking")
-    public ResponseEntity<ApiResponse<ShipmentDTO>> getTracking(@PathVariable Long id) {
-        // In a real app, verify that the order belongs to the current user
+    public ResponseEntity<ApiResponse<ShipmentDTO>> getTracking(
+            @PathVariable Long id,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        
+        com.badribhaiapparel.entity.Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new com.badribhaiapparel.exception.ResourceNotFoundException("Order not found"));
+
+        com.badribhaiapparel.entity.User currentUser = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new com.badribhaiapparel.exception.ResourceNotFoundException("User not found"));
+
+        boolean isOwner = order.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole().name().equals("ADMIN")
+                       || currentUser.getRole().name().equals("MANAGER");
+
+        if (!isOwner && !isAdmin) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to track this order");
+        }
+
         ShipmentDTO tracking = shipmentService.getTracking(id);
         return ResponseEntity.ok(ApiResponse.<ShipmentDTO>builder()
                 .success(true)

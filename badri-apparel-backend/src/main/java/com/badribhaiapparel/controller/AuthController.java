@@ -58,4 +58,16 @@ public class AuthController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/2fa/setup")
+    public ResponseEntity<ApiResponse<Void>> setup2FA(
+            @RequestBody com.badribhaiapparel.dto.TwoFactorSetupRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        authService.setup2FA(authentication.getName(), request.getSecret());
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("2FA setup successful")
+                .build();
+        return ResponseEntity.ok(response);
+    }
 }

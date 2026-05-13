@@ -9,10 +9,10 @@ import java.util.List;
 
 public interface AdminService {
     DashboardStatsDTO getDashboardStats();
-    com.badribhaiapparel.dto.DashboardSummaryDTO getDashboardSummary();
-    List<Order> getAllOrders();
-    Order updateOrderStatus(Long orderId, OrderStatus status);
-    List<User> getAllUsers();
-    User updateUserStatus(Long userId, boolean isActive);
+    com.badribhaiapparel.dto.DashboardSummaryDTO getDashboardSummary(String range);
+    List<com.badribhaiapparel.dto.OrderResponseDto> getAllOrders();
+    com.badribhaiapparel.dto.OrderResponseDto updateOrderStatus(Long orderId, OrderStatus status);
+    List<com.badribhaiapparel.dto.UserResponseDto> getAllUsers();
+    com.badribhaiapparel.dto.UserResponseDto updateUserStatus(Long userId, boolean isActive);
     void deleteUser(Long userId);
 }

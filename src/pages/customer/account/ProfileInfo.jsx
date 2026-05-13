@@ -6,13 +6,41 @@ import {
   MapPin, UserCircle, Save, X, ArrowRight
 } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { uploadService } from '../../../services/uploadService';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 const ProfileInfo = () => {
-  const { user, updateProfile } = useAuthStore();
+  const { user, updateProfile, updateUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+      const res = await uploadService.uploadAvatar(file, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      if (res.data.success) {
+        const { avatarUrl } = res.data.data;
+        updateUser({ profileImage: avatarUrl });
+        toast.success("Portrait updated in the heritage archive");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to upload portrait");
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -77,6 +105,52 @@ const ProfileInfo = () => {
         
         {/* Main Content Form/Display */}
         <div className="lg:col-span-8">
+          
+          {/* Portrait Section */}
+          <div className="mb-16 flex flex-col md:flex-row items-center gap-10 bg-primary/5 p-10 rounded-[2.5rem] border border-accent-gold/5">
+            <div className="relative group/avatar">
+              <div className="w-40 h-40 rounded-[2.5rem] bg-accent-maroon flex items-center justify-center text-white text-5xl font-heading font-bold shadow-2xl relative overflow-hidden">
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt="Patron" className="w-full h-full object-cover" />
+                ) : (
+                  <>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</>
+                )}
+                
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                    <Loader2 size={24} className="text-white animate-spin" />
+                    <span className="text-[8px] font-bold text-white uppercase tracking-widest">{uploadProgress}%</span>
+                  </div>
+                )}
+                
+                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
+                  <Camera size={24} className="text-white mb-2" />
+                  <span className="text-[8px] font-bold text-white uppercase tracking-[0.2em]">Change Portrait</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
+                </label>
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-accent-gold border-4 border-white rounded-2xl flex items-center justify-center text-primary shadow-lg">
+                <Sparkles size={20} />
+              </div>
+            </div>
+            
+            <div className="text-center md:text-left space-y-2">
+              <h3 className="text-2xl font-heading font-bold text-text-primary uppercase tracking-tight">The Patron Portrait</h3>
+              <p className="text-text-secondary text-xs font-medium max-w-xs">
+                Your visual identity across the BadriBhai ecosystem. High-resolution JPG or PNG recommended.
+              </p>
+              {uploading && (
+                <div className="w-full h-1 bg-accent-gold/10 rounded-full mt-4 overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }} 
+                    animate={{ width: `${uploadProgress}%` }} 
+                    className="h-full bg-accent-gold" 
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
           <form onSubmit={handleSave} className="space-y-16">
             
             {/* Identity Section */}

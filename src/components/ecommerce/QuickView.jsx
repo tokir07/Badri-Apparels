@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Heart, Star, Truck, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useWishlist } from '../../context/WishlistContext';
+import { useWishlistStore } from '../../store/useWishlistStore';
 import PriceTag from './PriceTag';
 import { cn } from '../../lib/utils';
 
@@ -12,7 +12,7 @@ const QuickView = ({ product, isOpen, onClose }) => {
   const [activeImage, setActiveImage] = useState(0);
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
 
   if (!isOpen) return null;
 

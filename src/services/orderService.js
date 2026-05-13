@@ -35,5 +35,7 @@ export const orderService = {
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Tracking info not found' };
     }
-  }
+  },
+
+  downloadInvoice: (orderId) => axios.get(`/orders/${orderId}/invoice`, { responseType: 'blob' })
 };

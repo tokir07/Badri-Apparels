@@ -12,6 +12,13 @@ const OAuth2Callback = () => {
 
   useEffect(() => {
     const processAuth = async () => {
+      const error = searchParams.get('error');
+      if (error === 'oauth_failed') {
+        toast.error("The heritage archive couldn't verify your social identity. Please try again or use your local vault key.");
+        navigate('/login');
+        return;
+      }
+
       const token = searchParams.get('token');
       const refreshToken = searchParams.get('refresh_token');
 

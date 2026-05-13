@@ -9,6 +9,13 @@ import org.mapstruct.Mapping;
 public interface ProductMapper {
     
     @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "images", target = "images")
+    com.badribhaiapparel.dto.ProductResponseDto toResponseDto(Product product);
+
+    java.util.List<com.badribhaiapparel.dto.ProductResponseDto> toResponseDtoList(java.util.List<Product> products);
+    
+    @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "images", target = "images")
     ProductDTO toDto(Product product);
     
@@ -22,6 +29,15 @@ public interface ProductMapper {
 
     @org.mapstruct.AfterMapping
     default void calculatePricesAndStock(com.badribhaiapparel.entity.Product product, @org.mapstruct.MappingTarget ProductDTO dto) {
+        processPrices(product, dto);
+    }
+
+    @org.mapstruct.AfterMapping
+    default void calculateResponsePrices(com.badribhaiapparel.entity.Product product, @org.mapstruct.MappingTarget com.badribhaiapparel.dto.ProductResponseDto dto) {
+        processResponsePrices(product, dto);
+    }
+
+    private void processPrices(com.badribhaiapparel.entity.Product product, Object dto) {
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
             java.math.BigDecimal min = product.getVariants().stream()
                 .filter(com.badribhaiapparel.entity.ProductVariant::isActive)
@@ -40,9 +56,23 @@ public interface ProductMapper {
                 .mapToInt(com.badribhaiapparel.entity.ProductVariant::getStock)
                 .sum();
             
-            dto.setMinPrice(min);
-            dto.setMaxPrice(max);
-            dto.setTotalStock(total);
+            if (dto instanceof ProductDTO d) {
+                d.setMinPrice(min);
+                d.setMaxPrice(max);
+                d.setTotalStock(total);
+            } else if (dto instanceof com.badribhaiapparel.dto.ProductResponseDto d) {
+                d.setMinPrice(min);
+                d.setMaxPrice(max);
+                d.setTotalStock(total);
+            }
         }
+    }
+
+    private void processResponsePrices(com.badribhaiapparel.entity.Product product, com.badribhaiapparel.dto.ProductResponseDto dto) {
+        processPrices(product, dto);
+    }
+
+    default java.time.Instant map(java.time.LocalDateTime value) {
+        return value == null ? null : value.atZone(java.time.ZoneId.systemDefault()).toInstant();
     }
 }

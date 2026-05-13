@@ -117,21 +117,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse refreshToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token is required");
+        }
+        
         String tokenHash = hashToken(token);
         RefreshToken refreshTokenEntity = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Refresh token not found or invalid"));
 
         if (refreshTokenEntity.getRevokedAt() != null) {
-            throw new RuntimeException("Refresh token has been revoked");
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token has been revoked");
         }
 
         if (refreshTokenEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token has expired");
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token has expired");
         }
 
         User user = refreshTokenEntity.getUser();
-        if (!user.isActive()) {
-            throw new RuntimeException("User is no longer active");
+        if (user == null || !user.isActive()) {
+            throw new org.springframework.security.authentication.BadCredentialsException("User is no longer active");
         }
 
         // Revoke old token
@@ -164,6 +168,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String token) {
+        if (token == null || token.isBlank()) {
+            return;
+        }
+        
         String tokenHash = hashToken(token);
         refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(t -> {
             t.setRevokedAt(LocalDateTime.now());
@@ -188,7 +196,18 @@ public class AuthServiceImpl implements AuthService {
         return rawToken;
     }
 
+    @Override
+    @Transactional
+    public void setup2FA(String email, String secret) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setTwoFactorSecret(secret);
+        user.setTwo_fa_enabled(true);
+        userRepository.save(user);
+    }
+
     private String hashToken(String token) {
+        if (token == null) return "";
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));

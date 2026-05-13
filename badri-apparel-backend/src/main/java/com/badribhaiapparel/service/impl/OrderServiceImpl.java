@@ -39,6 +39,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private com.badribhaiapparel.service.CouponService couponService;
+
     @Override
     @Transactional
     public Order createOrder(Order order, User user) {
@@ -116,15 +122,23 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(items);
         order.setTotalAmount(totalAmount);
 
+        // Apply Coupon if provided
+        if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
+            com.badribhaiapparel.dto.CouponValidationResult validation = couponService.validateCoupon(request.getCouponCode(), user, totalAmount);
+            if (validation.isValid()) {
+                order.setCouponCode(request.getCouponCode());
+                order.setDiscountAmount(validation.getDiscountAmount());
+                order.setTotalAmount(totalAmount - validation.getDiscountAmount());
+                
+                // Increment Usage
+                couponService.incrementUsage(request.getCouponCode());
+            }
+        }
+
         Order savedOrder = orderRepository.save(order);
 
-        // Generate Invoice & Send Email asynchronously
-        try {
-            ByteArrayInputStream invoicePdf = invoiceService.generateInvoicePdf(savedOrder);
-            emailService.sendOrderConfirmation(savedOrder, invoicePdf);
-        } catch (Exception e) {
-            System.err.println("Failed to send order confirmation email: " + e.getMessage());
-        }
+        // Trigger asynchronous order confirmation email
+        eventPublisher.publishEvent(new com.badribhaiapparel.event.OrderConfirmedEvent(savedOrder));
 
         return savedOrder;
     }
@@ -153,12 +167,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order updateOrderStatus(Long id, String status) {
         Order order = getOrderById(id);
-        order.setOrderStatus(OrderStatus.valueOf(status.toUpperCase()));
+        OrderStatus newStatus = OrderStatus.valueOf(status.toUpperCase());
+        order.setOrderStatus(newStatus);
+        Order savedOrder = orderRepository.save(order);
         
         // Trigger status specific emails
-        emailService.sendShippingUpdate(order);
+        eventPublisher.publishEvent(new com.badribhaiapparel.event.OrderStatusChangedEvent(savedOrder, newStatus));
         
-        return orderRepository.save(order);
+        return savedOrder;
     }
 
     @Override

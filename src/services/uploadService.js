@@ -21,5 +21,18 @@ export const uploadService = {
 
   deleteImage: (publicId) => {
     return api.post('/admin/upload/delete', { publicId });
+  },
+
+  uploadAvatar: (file, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/users/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (e) => {
+        if (onProgress && e.total) {
+          onProgress(Math.round((e.loaded * 100) / e.total));
+        }
+      }
+    });
   }
 };

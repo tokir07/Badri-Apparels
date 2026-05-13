@@ -19,8 +19,8 @@ const Inventory = () => {
     try {
       setLoading(true);
       const response = await productService.getLowStockVariants();
-      if (response.data) {
-        setVariants(response.data);
+      if (response.success) {
+        setVariants(response.data || []);
       }
     } catch (error) {
       console.error("Failed to fetch inventory:", error);
@@ -55,11 +55,11 @@ const Inventory = () => {
     }
   };
 
-  const filteredVariants = variants.filter(v => 
+  const filteredVariants = Array.isArray(variants) ? variants.filter(v => 
     v.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     v.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     v.color?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   return (
     <div className="space-y-10 pb-20">

@@ -21,13 +21,16 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final com.badribhaiapparel.security.OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, 
                           AuthenticationProvider authenticationProvider,
-                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
+                          com.badribhaiapparel.security.OAuth2LoginFailureHandler oAuth2LoginFailureHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationProvider = authenticationProvider;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.oAuth2LoginFailureHandler = oAuth2LoginFailureHandler;
     }
 
     @Bean
@@ -73,7 +76,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2LoginSuccessHandler)
-                        .failureUrl("/login?error=true")
+                        .failureHandler(oAuth2LoginFailureHandler)
                 );
 
         return http.build();

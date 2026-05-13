@@ -60,6 +60,19 @@ public class ShipmentServiceImpl implements ShipmentService {
         return mapToDTO(shipment);
     }
 
+    @Override
+    @Transactional
+    public void createShipment(Order order) {
+        if (shipmentRepository.findByOrderId(order.getId()).isPresent()) {
+            return; // Already exists
+        }
+
+        Shipment shipment = new Shipment();
+        shipment.setOrder(order);
+        shipment.setStatus("PENDING");
+        shipmentRepository.save(shipment);
+    }
+
     private ShipmentDTO mapToDTO(Shipment shipment) {
         return ShipmentDTO.builder()
                 .id(shipment.getId())

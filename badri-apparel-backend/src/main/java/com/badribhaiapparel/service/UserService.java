@@ -7,4 +7,6 @@ import com.badribhaiapparel.entity.User;
 public interface UserService {
     AuthResponse updateProfile(String email, UpdateProfileRequest profileData);
     User getUserByEmail(String email);
+    void subscribeNewsletter(String email);
+    User getCurrentUser();
 }

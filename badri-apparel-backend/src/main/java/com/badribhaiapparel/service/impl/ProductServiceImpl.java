@@ -64,8 +64,8 @@ public class ProductServiceImpl implements ProductService {
             for (com.badribhaiapparel.dto.ProductImageDto imgDto : productDTO.getImages()) {
                 com.badribhaiapparel.entity.ProductImage img = new com.badribhaiapparel.entity.ProductImage();
                 img.setProduct(product);
-                img.setUrl(imgDto.getUrl());
-                img.setPublicId(imgDto.getPublicId());
+                img.setUrl(imgDto.url());
+                img.setPublicId(imgDto.publicId());
                 img.setMain(imgDto.isMain());
                 product.getImages().add(img);
             }

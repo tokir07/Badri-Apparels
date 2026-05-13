@@ -9,4 +9,5 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(String token);
     void logout(String token);
+    void setup2FA(String email, String secret);
 }

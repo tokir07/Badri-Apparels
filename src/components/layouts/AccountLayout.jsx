@@ -40,8 +40,12 @@ const AccountLayout = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-accent-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
               
               <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-2xl bg-accent-maroon flex items-center justify-center text-white text-2xl font-heading font-bold shadow-xl mb-4">
-                   {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                <div className="w-20 h-20 rounded-2xl bg-accent-maroon flex items-center justify-center text-white text-2xl font-heading font-bold shadow-xl mb-4 overflow-hidden">
+                   {user?.profileImage ? (
+                     <img src={user.profileImage} alt="Patron" className="w-full h-full object-cover" />
+                   ) : (
+                     <>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</>
+                   )}
                 </div>
                 <div className="flex items-center gap-2 mb-1">
                    <Sparkles size={12} className="text-accent-gold" />

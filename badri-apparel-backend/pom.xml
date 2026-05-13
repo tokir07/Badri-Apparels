@@ -15,6 +15,7 @@
 	<description>Enterprise-Level E-Commerce Backend for Badribhai Apparel</description>
 	<properties>
 		<java.version>21</java.version>
+		<flyway.version>10.10.0</flyway.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -136,6 +137,23 @@
             <artifactId>mapstruct-processor</artifactId>
             <version>1.5.5.Final</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Flyway Migrations -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>	
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
 	</dependencies>

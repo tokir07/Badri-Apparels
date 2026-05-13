@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Delivered</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #800000; color: #fff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { border: 1px solid #eee; padding: 30px; border-radius: 0 0 10px 10px; text-align: center; }
+        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; }
+        .btn { display: inline-block; background: #800000; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BadriBhai Apparels</h1>
+        <p>Delivered & Ready to Wear!</p>
+    </div>
+    <div class="content">
+        <p>Namaste <span th:text="${customerName}">Customer</span>,</p>
+        <p>Your order <strong th:text="${orderNumber}">#BB-12345</strong> has been successfully delivered. We hope you love your new BadriBhai heritage pieces!</p>
+        
+        <div style="margin: 40px 0;">
+            <img src="https://img.icons8.com/color/96/000000/delivered-box.png" alt="Delivered" />
+        </div>
+
+        <h3>We'd Love Your Feedback</h3>
+        <p>How was your experience? Your reviews help our artisanal community grow.</p>
+        
+        <div style="text-align: center;">
+            <a th:href="${reviewUrl}" class="btn">Share Your Review</a>
+        </div>
+
+        <p style="margin-top: 30px;">Tag us in your photos <strong>@BadriBhaiApparel</strong> for a chance to be featured!</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 BadriBhai Apparels. All Rights Reserved.</p>
+    </div>
+</body>
+</html>

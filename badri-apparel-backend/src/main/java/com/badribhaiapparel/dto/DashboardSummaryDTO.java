@@ -19,7 +19,7 @@ public class DashboardSummaryDTO {
     private int todayOrders;
     private int newCustomersToday;
     private int pendingOrders;
-    private List<DailyRevenueDTO> revenueLast30Days;
+    private List<DailyRevenueDTO> revenueTrend;
     private List<TopProductDTO> topProducts;
     private List<CategoryRevenueDTO> revenueByCategory;
     private List<LowStockAlertDTO> lowStockAlerts;

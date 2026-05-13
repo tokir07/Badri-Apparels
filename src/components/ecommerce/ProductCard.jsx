@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, Star, Plus } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useWishlist } from '../../context/WishlistContext';
+import { useWishlistStore } from '../../store/useWishlistStore';
 import PriceTag from './PriceTag';
 import QuickView from './QuickView';
 import { cn } from '../../lib/utils';
@@ -13,7 +13,7 @@ const ProductCard = ({ product }) => {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
 
   const sellingPrice = product.sellingPrice || product.discountPrice || product.mrp || product.price || 0;
   const mrp = product.mrp || product.price || 0;

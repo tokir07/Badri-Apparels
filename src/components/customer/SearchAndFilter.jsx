@@ -150,24 +150,49 @@ const SearchAndFilter = ({ onFilterChange }) => {
               </div>
 
               {/* Price Range */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent-gold">Valuation Range</h4>
-                <div className="flex items-center gap-3">
-                  <input 
-                    type="number"
-                    placeholder="Min"
-                    value={searchParams.get('minPrice') || ''}
-                    onChange={(e) => updateQueryParams({ minPrice: e.target.value })}
-                    className="w-full bg-white border border-accent-gold/10 rounded-xl px-4 py-3 text-[10px] font-bold focus:outline-none focus:border-accent-maroon"
-                  />
-                  <span className="text-accent-gold">—</span>
-                  <input 
-                    type="number"
-                    placeholder="Max"
-                    value={searchParams.get('maxPrice') || ''}
-                    onChange={(e) => updateQueryParams({ maxPrice: e.target.value })}
-                    className="w-full bg-white border border-accent-gold/10 rounded-xl px-4 py-3 text-[10px] font-bold focus:outline-none focus:border-accent-maroon"
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-accent-gold">₹</span>
+                      <input 
+                        type="number"
+                        placeholder="Min"
+                        value={searchParams.get('minPrice') || ''}
+                        onChange={(e) => updateQueryParams({ minPrice: e.target.value })}
+                        className="w-full bg-white border border-accent-gold/10 rounded-xl pl-6 pr-3 py-3 text-[10px] font-bold focus:outline-none focus:border-accent-maroon transition-all"
+                      />
+                    </div>
+                    <span className="text-accent-gold/40">—</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-accent-gold">₹</span>
+                      <input 
+                        type="number"
+                        placeholder="Max"
+                        value={searchParams.get('maxPrice') || ''}
+                        onChange={(e) => updateQueryParams({ maxPrice: e.target.value })}
+                        className="w-full bg-white border border-accent-gold/10 rounded-xl pl-6 pr-3 py-3 text-[10px] font-bold focus:outline-none focus:border-accent-maroon transition-all"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Quick price pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: 'Under 1k', min: 0, max: 1000 },
+                      { label: '1k - 3k', min: 1000, max: 3000 },
+                      { label: 'Above 3k', min: 3000, max: '' }
+                    ].map(range => (
+                      <button
+                        key={range.label}
+                        onClick={() => updateQueryParams({ minPrice: range.min, maxPrice: range.max })}
+                        className="px-3 py-1.5 bg-white border border-accent-gold/5 rounded-lg text-[8px] font-bold uppercase tracking-widest text-text-secondary hover:border-accent-maroon hover:text-accent-maroon transition-all"
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
